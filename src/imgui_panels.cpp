@@ -276,8 +276,6 @@ void AppChart::writeToDisk(Tracker* tracker)
 
 void AppOptions::draw(Tracker* tracker)
 {
-	if (ImGui::BeginChild("Mechanics Settings", ImVec2(550, 650)))
-	{
 		ImGui::Text("Show Mechanic Log");
 		if (ImGui::Checkbox("Enabled##Log", &Settings::show_app_log))
 		{
@@ -343,7 +341,4 @@ void AppOptions::draw(Tracker* tracker)
 				}
 			}
 		}
-
-		ImGui::EndChild();
-	}
 }
