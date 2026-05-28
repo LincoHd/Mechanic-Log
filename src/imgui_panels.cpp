@@ -41,7 +41,7 @@ void AppLog::draw(const char* title, bool* p_open, ImGuiWindowFlags flags, Track
 	{
 		if (current_event->player
 			&& !current_event->player->is_self
-			&& tracker->show_only_self)
+			&& Settings::show_only_self)
 			continue;
 
 		if (!filter.passFilter(&*current_event)) continue;
@@ -131,7 +131,7 @@ void AppChart::draw(Tracker* tracker, const char* title, bool* p_open, ImGuiWind
 		if (!current_player) continue;
 
 		if (!current_player->is_self
-			&& tracker->show_only_self)
+			&& Settings::show_only_self)
 			continue;
 
 		if (!filter.passFilter(current_player,nullptr,nullptr,verbosity_all))
@@ -291,11 +291,23 @@ void AppOptions::draw(Tracker* tracker)
 			Settings::Save(SettingsPath);
 		}
 		
-		ImGui::Checkbox("Only show mechanics for self", &tracker->show_only_self);
+		if (ImGui::Checkbox("Only show mechanics for self", &Settings::show_only_self))
+		{
+			Settings::Settings[IS_SELF_STATS] = Settings::show_only_self;
+			Settings::Save(SettingsPath);
+		}
 
-		ImGui::InputInt("Max mechanics in log", &tracker->max_log_events, 25);
+		if (ImGui::InputInt("Max mechanics in log", &Settings::max_log_events, 25))
+		{
+			Settings::Settings[LOG_MAX_MECHANICS] = Settings::max_log_events;
+			Settings::Save(SettingsPath);
+		}
 
-		ImGui::Checkbox("Export chart to CSV when game is closed", &tracker->export_chart_on_close);
+		if (ImGui::Checkbox("Export chart to CSV when game is closed", &Settings::export_chart_on_close))
+		{
+			Settings::Settings[EXPORT_ON_CLOSE] = Settings::export_chart_on_close;
+			Settings::Save(SettingsPath);
+		}
 
 		ImGui::Separator();
 

@@ -122,7 +122,7 @@ void AddonUnload()
 	Addon_API->Events_Unsubscribe("EV_ARCDPS_COMBATEVENT_LOCAL_RAW", mod_combat_local);
 	Addon_API->Events_Unsubscribe("EV_ARCDPS_COMBATEVENT_SQUAD_RAW", mod_combat_squad);
 	Addon_API->Events_Unsubscribe(EV_ADDON_UNLOADED, OnAddonUnloaded);
-	if(tracker.export_chart_on_close) chart_ui.writeToDisk(&tracker);
+	if(Settings::export_chart_on_close) chart_ui.writeToDisk(&tracker);
 	tracker.resetAllPlayerStats();
 	Settings::Save(SettingsPath);
 }

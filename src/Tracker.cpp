@@ -1,5 +1,7 @@
 ﻿#include "Tracker.h"
 
+#include "Settings.h"
+
 PlayerEntry* Tracker::getPlayerEntry(const ag* new_player)
 {
 	if (!isPlayer(new_player)) return nullptr;
@@ -219,7 +221,7 @@ void Tracker::processCombatEnter(const cbtevent* ev, ag* new_agent)
 					log_events.push_back(LogEvent(nullptr, nullptr, getElapsedTime(ev->time), ev->time, 1,nullptr));//TODO: make function for pushing log events
 				}
 
-				if (log_events.size() > max_log_events)
+				if (log_events.size() > Settings::max_log_events)
 				{
 					log_events.pop_front();
 				}
@@ -278,7 +280,7 @@ void Tracker::processMechanic(const cbtevent* ev, PlayerEntry* new_player_src, P
 		
 	log_events.push_back(LogEvent(relevant_entry->player, new_mechanic, getElapsedTime(ev->time), ev->time, value, ev));
 		
-	if (log_events.size() > max_log_events)
+	if (log_events.size() > Settings::max_log_events)
 	{
 		log_events.pop_front();
 	}
