@@ -5,6 +5,7 @@
 const char* IS_MECHANI_CHART_VISIBLE = "IsMechanicChartVisible";
 const char* IS_MECHANI_LOG_VISIBLE = "IsMechanicLogVisible";
 const char* EXPORT_DIR = "";
+const char* LOG_MAX_MECHANICS = "LogMaxMechanics";
 
 namespace Settings
 {

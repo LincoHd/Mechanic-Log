@@ -312,12 +312,17 @@ void AppOptions::draw(Tracker* tracker)
 				{
 					if (current_mechanic->boss->name == boss->name)
 					{
-						ImGui::Combo(current_mechanic->name.c_str(), &current_mechanic->verbosity,
+						if (ImGui::Combo(current_mechanic->name.c_str(), &current_mechanic->verbosity,
 							"Hidden\0"
 							"Chart Only\0"
 							"Log only\0"
-							"Everywhere\0\0", 4);
-
+							"Everywhere\0\0", 4))
+						{
+							std::string_view tmp = current_mechanic->boss->name + ":" + current_mechanic->name;
+							Settings::Settings[tmp] = current_mechanic->verbosity;
+							Settings::Save(SettingsPath);
+						}
+						
 						if (current_mechanic->description.length() > 0)
 						{
 							ImGui::SameLine(); showHelpMarker(current_mechanic->description.c_str());

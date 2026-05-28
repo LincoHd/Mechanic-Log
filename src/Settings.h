@@ -12,7 +12,7 @@ using json = nlohmann::json;
 extern const char* IS_MECHANI_CHART_VISIBLE;
 extern const char* IS_MECHANI_LOG_VISIBLE;
 extern const char* EXPORT_DIR;
-extern const char* 
+extern const char* LOG_MAX_MECHANICS;
 
 namespace Settings
 {
