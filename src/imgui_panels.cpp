@@ -259,21 +259,6 @@ void AppChart::writeToDisk(Tracker* tracker)
 	last_file_path = file_path;
 }
 
-/*std::string AppChart::getDefaultExportPath()
-{
-	CHAR my_documents[MAX_PATH];
-	const HRESULT result = SHGetFolderPath(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, my_documents);
-	if (result != S_OK)
-	{
-		//std::cout << "Error: " << result << "\n";
-	}
-	else
-	{
-		return std::string(my_documents) + "\\Guild Wars 2\\addons\\arcdps\\arcdps.mechanics";
-	}
-	return "";
-}*/
-
 void AppOptions::draw(Tracker* tracker)
 {
 		ImGui::Text("Show Mechanic Log");

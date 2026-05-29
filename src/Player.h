@@ -19,7 +19,7 @@ struct Player
     uint64_t* current_log_npc = nullptr;
 
     Player(ag* new_player);
-    Player(char* new_name, char* new_account, uintptr_t new_id, bool new_is_self);
+    Player(char* new_name, char* new_account, uintptr_t new_id, bool new_is_self, bool rtapi_info);
 
     bool operator==(Player* other_player);
     bool operator==(uintptr_t other_id);

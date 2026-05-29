@@ -13,7 +13,16 @@ PlayerEntry* Tracker::getPlayerEntry(const ag* new_player)
 	//player not tracked yet
 	if (it == player_entries.end())
 	{
-		return nullptr;
+		auto test = std::find(player_entries.begin(), player_entries.end(), new_player->name);
+		if (test == player_entries.end())
+		{
+			return nullptr;
+		}
+		else
+		{
+			(&*test)->player->id = new_player->id;
+			return &*test;
+		}
 	}
 	else//player tracked
 	{
@@ -32,7 +41,7 @@ PlayerEntry * Tracker::getPlayerEntry(uintptr_t new_player)
 	//player not tracked yet
 	if (it == player_entries.end())
 	{
-		return nullptr;
+		return nullptr; //TODO: PlayerHandeling with RTAPI.
 	}
 	else//player tracked
 	{
@@ -82,7 +91,7 @@ bool Tracker::addPlayer(ag* src, ag* dst)
 
 	if (!new_entry)
 	{
-		players.push_back(Player(name, account, id, is_self));
+		players.push_back(Player(name, account, id, is_self, false));
 		players.back().current_log_npc = &current_log_npc;
 		player_entries.push_back(PlayerEntry(&players.back()));
 	}
@@ -92,6 +101,30 @@ bool Tracker::addPlayer(ag* src, ag* dst)
 		new_entry->player->name = name;
 		new_entry->player->in_squad = true;
 		new_entry->player->is_self = is_self;
+	}
+	return true;
+}
+
+bool Tracker::addPlayer(char* accountName, char* playerName, bool isSelf)
+{
+	if (!accountName || !playerName) return false;
+	PlayerEntry* new_entry = getPlayerEntry(accountName);
+	
+	//TODO: Dupplicate Code move to method:
+	std::lock_guard<std::mutex> lg(players_mtx);
+
+	if (!new_entry)
+	{
+		players.push_back(Player(playerName, accountName, 0, isSelf, true));
+		players.back().current_log_npc = &current_log_npc;
+		player_entries.push_back(PlayerEntry(&players.back()));
+	}
+	else//player tracked
+	{
+		new_entry->player->id = 0;
+		new_entry->player->name = accountName;
+		new_entry->player->in_squad = true;
+		new_entry->player->is_self = isSelf;
 	}
 	return true;
 }

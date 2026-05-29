@@ -31,7 +31,6 @@ struct AppChart
     std::string toString(Tracker* tracker);
     void exportData(Tracker* tracker);
     void writeToDisk(Tracker* tracker);
-    //std::string getDefaultExportPath();
 };
 
 struct AppOptions
