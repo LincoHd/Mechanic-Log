@@ -24,6 +24,7 @@ namespace Settings
     void Load(std::filesystem::path aPath);
     /* Saves the settings. */
     void Save(std::filesystem::path aPath);
+    void SaveMechanicSettings(std::filesystem::path aPath);
     
     extern bool show_app_chart;
     extern bool show_app_log;

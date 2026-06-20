@@ -68,12 +68,6 @@ void AddonLoad(AddonAPI_t* aApi)
 	ImGui::SetCurrentContext((ImGuiContext*)Addon_API->ImguiContext);
 	ImGui::SetAllocatorFunctions((void* (*)(size_t, void*))Addon_API->ImguiMalloc, (void(*)(void*, void*))Addon_API->ImguiFree); // on imgui 1.80+
 	RTAPIData = (RTAPI::RealTimeData*)Addon_API->DataLink_Get(DL_RTAPI);
-	if (RTAPIData != nullptr)
-	{
-		std::string test = std::to_string((RTAPIData->AccountName[0])) + ": " + RTAPIData->CharacterName;
-		Addon_API->Log(LOGL_INFO, channelName, test.c_str());
-		
-	}
 
 	Addon_API->Events_Subscribe("EV_ARCDPS_COMBATEVENT_LOCAL_RAW", mod_combat_local);
 	Addon_API->Events_Subscribe("EV_ARCDPS_COMBATEVENT_SQUAD_RAW", mod_combat_squad);
@@ -139,6 +133,7 @@ void AddonUnload()
 	Addon_API->Events_Unsubscribe(EV_RTAPI_GROUP_MEMBER_LEFT,          (EVENT_CONSUME)OnGroupMemberLeave);
 	Addon_API->Events_Unsubscribe(EV_RTAPI_GROUP_MEMBER_UPDATED,       (EVENT_CONSUME)OnGroupMemberUpdate);
 
+	Settings::SaveMechanicSettings(SettingsPath);
 	if(Settings::export_chart_on_close) chart_ui.writeToDisk(&tracker);
 	tracker.resetAllPlayerStats();
 	Settings::Save(SettingsPath);
@@ -164,7 +159,7 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 	/* ev is null. dst will only be valid on tracking add. skillname will also be null */
 	if (!cbtEv->ev)
 	{
-		if (!cbtEv->src->elite)
+		if (!cbtEv->src->elite && RTAPIData == nullptr)
 		{
 	
 			/* notify tracking change */
@@ -271,24 +266,23 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 		{
 
 		}
-		Addon_API->Log(LOGL_INFO, channelName, "HI");
 
 		if(cbtEv->ev->result != CBTR_INTERRUPT && cbtEv->ev->result != CBTR_BLIND)
 		{
-			int64_t value = 0;
 			current_entry = tracker.getPlayerEntry(cbtEv->src);
 			PlayerEntry* other_entry = tracker.getPlayerEntry(cbtEv->dst);
-			for(uint16_t index=0;index<getMechanics().size();index++)
+			
+			for (auto& mechanic : getMechanics())
 			{
-				if(value = getMechanics()[index].isValidHit(cbtEv->ev, cbtEv->src, cbtEv->dst,
+				if (mechanic.isValidHit(cbtEv->ev, cbtEv->src, cbtEv->dst,
 					(current_entry ? current_entry->player : nullptr), //check for null before getting player object
 					(other_entry ? other_entry->player: nullptr)))
 				{
-					if (getMechanics()[index].is_combat_buff && cbtEv->ev->is_statechange == CBTS_BUFFAPPLY)
+					if (mechanic.is_combat_buff && cbtEv->ev->is_statechange == CBTS_BUFFAPPLY)
 					{
-						getMechanics()[index].is_combat_buff = false;
+						mechanic.is_combat_buff = false;
 					}
-					tracker.processMechanic(cbtEv->ev, current_entry, other_entry, &getMechanics()[index], value);
+					tracker.processMechanic(cbtEv->ev, current_entry, other_entry, &mechanic, true);
 					log_ui.scroll_to_bottom = true;
 				}
 			}
@@ -298,7 +292,7 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 
 void OnGroupMemberLeave(RTAPI::GroupMember member)
 {
-	Addon_API->Log(LOGL_INFO, channelName, std::string(member.AccountName).c_str());
+	Addon_API->Log(LOGL_INFO, channelName, std::string(member.AccountName).c_str()); //TODO: LEAVE
 }
 
 void OnGroupMemberJoin(RTAPI::GroupMember member)

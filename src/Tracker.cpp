@@ -1,28 +1,20 @@
 ﻿#include "Tracker.h"
 
 #include "Settings.h"
+#include "shared.h"
 
 PlayerEntry* Tracker::getPlayerEntry(const ag* new_player)
 {
 	if (!isPlayer(new_player)) return nullptr;
 
 	std::lock_guard<std::mutex> lg(players_mtx);
-
-	auto it = std::find(player_entries.begin(), player_entries.end(), new_player->id);
-
+	
+	auto it = RTAPIData != nullptr ? std::find(player_entries.begin(), player_entries.end(), new_player->name) : std::find(player_entries.begin(), player_entries.end(), new_player->id);
+	
 	//player not tracked yet
 	if (it == player_entries.end())
 	{
-		auto test = std::find(player_entries.begin(), player_entries.end(), new_player->name);
-		if (test == player_entries.end())
-		{
-			return nullptr;
-		}
-		else
-		{
-			(&*test)->player->id = new_player->id;
-			return &*test;
-		}
+		return nullptr;
 	}
 	else//player tracked
 	{
@@ -137,7 +129,7 @@ bool Tracker::removePlayer(const ag* src)
 	const char* account = src->name;//TODO: if account names are ever added, put it here
 	const uintptr_t id = src->id;
 
-	PlayerEntry* new_entry = getPlayerEntry(id);
+	PlayerEntry* new_entry = RTAPIData != nullptr ? getPlayerEntry(name) : getPlayerEntry(id);
 
 	//player not tracked yet
 
@@ -299,6 +291,7 @@ void Tracker::processLogNpcUpdate(uint64_t species_id)
 
 void Tracker::processMechanic(const cbtevent* ev, PlayerEntry* new_player_src, PlayerEntry* new_player_dst, Mechanic* new_mechanic, int64_t value)
 {
+	Addon_API->Log(LOGL_INFO, channelName, "processMechanic");
 	std::lock_guard<std::mutex> lg(tracker_mtx);
 
 	PlayerEntry* relevant_entry = new_mechanic->target_is_dst ? new_player_dst : new_player_src;

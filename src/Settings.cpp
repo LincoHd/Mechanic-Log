@@ -53,20 +53,13 @@ namespace Settings
         {
             Settings[LOG_MAX_MECHANICS].get_to<int>(max_log_events);
         }
-        
-        for (const Boss* boss : bosses)
+        for (auto current_mechanic: getMechanics())
         {
-            if (boss->name == "Generic" || boss->name == "Mursaat Overseer" || boss->name == "Skorvald the Shattered" || boss->name == "Artsariiv") { continue; }
-            for (auto current_mechanic = getMechanics().begin(); current_mechanic != getMechanics().end(); ++current_mechanic)
+            std::string tmp = current_mechanic.getIniName();
+            
+            if (!Settings[tmp].is_null())
             {
-                if (current_mechanic->boss->name == boss->name)
-                {
-                    std::string_view tmp = current_mechanic->boss->name + ":" + current_mechanic->name;
-                    if (!Settings[tmp].is_null())
-                    {
-                        Settings[tmp].get_to<int>(current_mechanic->verbosity);
-                    }
-                }
+                Settings[tmp].get_to<int>(current_mechanic.verbosity);
             }
         }
     }
@@ -74,14 +67,27 @@ namespace Settings
     void Save(std::filesystem::path aPath)
     {
         Mutex.lock();
-        {
-            std::ofstream file(aPath);
-            file << Settings.dump(1, '\t') << std::endl;
-            file.close();
-        }
+        try
+            {
+                std::ofstream file(aPath);
+                file << Settings.dump(1, '\t') << std::endl;
+                file.close();
+            }
+            catch (json::exception ex)
+            {
+                Addon_API->Log(LOGL_WARNING, channelName, "Could not be saved.");
+                Addon_API->Log(LOGL_WARNING, channelName, ex.what());
+            }
         Mutex.unlock();
-        Addon_API->Log(LOGL_INFO, channelName, aPath.string().c_str());
-        
+    }
+    
+    void SaveMechanicSettings(std::filesystem::path aPath)
+    {
+        for (auto current_mechanic: getMechanics())
+        {
+            std::string tmp = current_mechanic.getIniName();
+            Settings[tmp] = current_mechanic.verbosity;
+        }
     }
     
 }
