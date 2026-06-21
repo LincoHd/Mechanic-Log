@@ -1,5 +1,6 @@
 ﻿#include "Tracker.h"
 
+#include "imgui_panels.h"
 #include "Settings.h"
 #include "shared.h"
 
@@ -33,7 +34,7 @@ PlayerEntry * Tracker::getPlayerEntry(uintptr_t new_player)
 	//player not tracked yet
 	if (it == player_entries.end())
 	{
-		return nullptr; //TODO: PlayerHandeling with RTAPI.
+		return nullptr; 
 	}
 	else//player tracked
 	{
@@ -41,7 +42,7 @@ PlayerEntry * Tracker::getPlayerEntry(uintptr_t new_player)
 	}
 }
 
-PlayerEntry * Tracker::getPlayerEntry(std::string_view new_player)
+PlayerEntry * Tracker::getPlayerEntry(std::string new_player)
 {
 	if (new_player.empty()) return nullptr;
 
@@ -99,8 +100,13 @@ bool Tracker::addPlayer(ag* src, ag* dst)
 
 bool Tracker::addPlayer(char* accountName, char* playerName, bool isSelf)
 {
-	if (!accountName || !playerName) return false;
 	PlayerEntry* new_entry = getPlayerEntry(accountName);
+	}
+	
+	if (!playerName) return false;
+	if (!accountName) return false;
+	if (std::string(playerName).length() < 2) return false;
+	if (std::string(accountName).length() < 2) return false;
 	
 	//TODO: Dupplicate Code move to method:
 	std::lock_guard<std::mutex> lg(players_mtx);
@@ -114,7 +120,7 @@ bool Tracker::addPlayer(char* accountName, char* playerName, bool isSelf)
 	else//player tracked
 	{
 		new_entry->player->id = 0;
-		new_entry->player->name = accountName;
+		new_entry->player->name = playerName;
 		new_entry->player->in_squad = true;
 		new_entry->player->is_self = isSelf;
 	}
@@ -291,7 +297,6 @@ void Tracker::processLogNpcUpdate(uint64_t species_id)
 
 void Tracker::processMechanic(const cbtevent* ev, PlayerEntry* new_player_src, PlayerEntry* new_player_dst, Mechanic* new_mechanic, int64_t value)
 {
-	Addon_API->Log(LOGL_INFO, channelName, "processMechanic");
 	std::lock_guard<std::mutex> lg(tracker_mtx);
 
 	PlayerEntry* relevant_entry = new_mechanic->target_is_dst ? new_player_dst : new_player_src;

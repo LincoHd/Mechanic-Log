@@ -22,7 +22,8 @@ struct PlayerEntry
     PlayerEntry(Player* new_player);
 	
     bool operator==(uintptr_t other_id) { return player && *player == other_id; };
-    bool operator==(std::string_view other_str) { return player && player->account == other_str; }
+    bool operator==(std::string other_str) { return player && *player == other_str; }
+    bool isPlayerAccount(std::string_view account_name){return player && player->account == account_name;}
     void addMechanicEntry(uint64_t new_time, Mechanic* new_mechanic, Boss* new_boss);
     void addPull(Boss* new_boss);
     int getMechanicsTotal();

@@ -31,7 +31,7 @@ public:
 
 	PlayerEntry* getPlayerEntry(const ag* new_player);
 	PlayerEntry* getPlayerEntry(uintptr_t new_player);
-	PlayerEntry* getPlayerEntry(std::string_view new_player);
+	PlayerEntry* getPlayerEntry(std::string new_player);
 	bool addPlayer(ag* src, ag* dst);//src&dst of combat event
 	bool addPlayer(char* accountName, char* playerName, bool is_self);
 	bool removePlayer(const ag* src);

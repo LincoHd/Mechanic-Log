@@ -292,6 +292,7 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 
 void OnGroupMemberLeave(RTAPI::GroupMember member)
 {
+	//TODO: Add remove
 	Addon_API->Log(LOGL_INFO, channelName, std::string(member.AccountName).c_str()); //TODO: LEAVE
 }
 
@@ -305,6 +306,7 @@ void OnGroupMemberJoin(RTAPI::GroupMember member)
 void OnGroupMemberUpdate(RTAPI::GroupMember member)
 {
 	//TODO: Change display name.
+	tracker.addPlayer(&member.AccountName[0], &member.CharacterName[0], member.IsSelf);
 }
 
 
