@@ -23,7 +23,7 @@ Player::Player(char* new_name, char* new_account, uintptr_t new_id, bool new_is_
 {
     name = new_name ? new_name : "";
     account = new_account ? new_account : "";
-    name_account_combo = name + " - " + (rtapi_info? account : account.substr(1));
+    name_account_combo = name + " - " + account;
     id = new_id;
     is_self = new_is_self;
 }

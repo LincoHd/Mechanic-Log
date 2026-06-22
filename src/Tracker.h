@@ -35,6 +35,7 @@ public:
 	bool addPlayer(ag* src, ag* dst);//src&dst of combat event
 	bool addPlayer(char* accountName, char* playerName, bool is_self);
 	bool removePlayer(const ag* src);
+	bool removePlayer(char* accountName);
 
 	void addPull(Boss* boss);
 	void resetAllPlayerStats();
