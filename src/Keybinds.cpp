@@ -31,7 +31,7 @@ namespace Keybinds
     void Cleanup()
     {
         Addon_API->InputBinds_Deregister(Keybinds::KeyBindChartLabel);
-        Addon_API->InputBinds_Deregister(Keybinds::KeyBindChartLabel);
+        Addon_API->InputBinds_Deregister(Keybinds::KeyBindLogLabel);
     }
 }
 
