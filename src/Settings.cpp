@@ -62,8 +62,18 @@ namespace Settings
             Settings[MAX_NAME_DISPLAY_LENGTH].get_to<int>(max_name_display_length);
         }
         
+        if (!Settings[EXPORT_ON_CLOSE].is_null())
+        {
+            Settings[EXPORT_ON_CLOSE].get_to<bool>(export_chart_on_close);
+        }
+        
+        if (!Settings[IS_SELF_STATS].is_null())
+        {
+            Settings[IS_SELF_STATS].get_to<bool>(show_only_self);
+        }
+        
         //TODO LOAD RIGHT.
-        for (auto current_mechanic: getMechanics())
+        for (auto& current_mechanic: getMechanics())
         {
             std::string tmp = current_mechanic.getIniName();
             
