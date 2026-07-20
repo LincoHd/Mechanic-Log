@@ -5,9 +5,6 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 #include <filesystem>
-#include <fstream>
-
-#include <mutex>
 
 extern const char* IS_MECHANI_CHART_VISIBLE;
 extern const char* IS_MECHANI_LOG_VISIBLE;
@@ -15,6 +12,7 @@ extern const char* EXPORT_DIR;
 extern const char* LOG_MAX_MECHANICS;
 extern const char* EXPORT_ON_CLOSE;
 extern const char* IS_SELF_STATS;
+extern const char* MAX_NAME_DISPLAY_LENGTH;
 
 namespace Settings
 {
@@ -32,4 +30,5 @@ namespace Settings
     extern bool show_only_self;
     extern bool export_chart_on_close;
     extern std::string export_dir;
+    extern int max_name_display_length;
 }

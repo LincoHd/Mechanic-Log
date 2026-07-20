@@ -78,6 +78,9 @@ void AddonLoad(AddonAPI_t* aApi)
 	
 	Keybinds::Register();
 	
+	NexusLink = (NexusLinkData_t*)Addon_API->DataLink_Get(DL_NEXUS_LINK);
+	MumbleLink = (Mumble::Data*)Addon_API->DataLink_Get(DL_MUMBLE_LINK);
+	
 	Addon_API->GUI_Register(RT_OptionsRender, AddonOptions);
 	Addon_API->GUI_Register(RT_Render, AddonRender);
 	
@@ -313,6 +316,7 @@ void ShowMechanicsLog(bool* p_open)
 
 void AddonRender()
 {
+	if (!NexusLink || !MumbleLink || MumbleLink->Context.IsMapOpen || !NexusLink->IsGameplay) { return; }
 	if (Settings::show_app_chart)
 	{
 		chartOpen = true;

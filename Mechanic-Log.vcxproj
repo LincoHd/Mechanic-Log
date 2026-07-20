@@ -14,6 +14,7 @@
     <ClInclude Include="src\datastructures.h" />
     <ClInclude Include="src\helpers.h" />
     <ClInclude Include="src\Keybinds.h" />
+    <ClInclude Include="src\mumble\Mumble.h" />
     <ClInclude Include="src\nlohmann\json.hpp" />
     <ClInclude Include="src\Settings.h" />
     <ClInclude Include="src\Shared.h" />
