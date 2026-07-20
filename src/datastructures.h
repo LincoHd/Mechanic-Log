@@ -622,6 +622,21 @@ typedef struct ag
 	uint16_t team; /* sep21+ */
 } ag;
 
+struct AgentUpdate
+{
+	char AccountName[64];
+	char CharacterName[64];
+	uintptr_t ID;
+	uintptr_t InstanceID;
+	uint32_t Added;
+	uint32_t Target;
+	uint32_t Self;
+	uint32_t Prof;
+	uint32_t Elite;
+	uint16_t Team;
+	uint16_t Subgroup;
+};
+
 /* arc api nexus wrapper*/
 struct EvCombatData
 {

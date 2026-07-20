@@ -259,21 +259,6 @@ void AppChart::writeToDisk(Tracker* tracker)
 	last_file_path = file_path;
 }
 
-/*std::string AppChart::getDefaultExportPath()
-{
-	CHAR my_documents[MAX_PATH];
-	const HRESULT result = SHGetFolderPath(nullptr, CSIDL_PERSONAL, nullptr, SHGFP_TYPE_CURRENT, my_documents);
-	if (result != S_OK)
-	{
-		//std::cout << "Error: " << result << "\n";
-	}
-	else
-	{
-		return std::string(my_documents) + "\\Guild Wars 2\\addons\\arcdps\\arcdps.mechanics";
-	}
-	return "";
-}*/
-
 void AppOptions::draw(Tracker* tracker)
 {
 		ImGui::Text("Show Mechanic Log");
@@ -322,16 +307,11 @@ void AppOptions::draw(Tracker* tracker)
 				{
 					if (current_mechanic->boss->name == boss->name)
 					{
-						if (ImGui::Combo(current_mechanic->name.c_str(), &current_mechanic->verbosity,
+						ImGui::Combo(current_mechanic->name.c_str(), &current_mechanic->verbosity,
 							"Hidden\0"
 							"Chart Only\0"
 							"Log only\0"
-							"Everywhere\0\0", 4))
-						{
-							std::string_view tmp = current_mechanic->boss->name + ":" + current_mechanic->name;
-							Settings::Settings[tmp] = current_mechanic->verbosity;
-							Settings::Save(SettingsPath);
-						}
+							"Everywhere\0\0", 4);
 						
 						if (current_mechanic->description.length() > 0)
 						{

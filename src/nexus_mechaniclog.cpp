@@ -16,13 +16,15 @@ AddonDefinition_t AddonDef{};
 void AddonUnload();
 void AddonOptions();
 UINT mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void mod_combat_local(void*);
-void mod_combat_squad(void*);
-void mod_combat(bool, void*);
+void mod_combat(void*);
 void ShowMechanicsChart(bool*);
 void ShowMechanicsLog(bool*);
 void AddonRender();
 void AddonKeybindHandle(const char*, bool);
+void OnAddonUnloaded(void* aSignature);
+void OnGroupMemberUpdate(RTAPI::GroupMember);
+void OnGroupMemberLeave(RTAPI::GroupMember);
+void OnGroupMemberJoin(RTAPI::GroupMember);
 
 AppLog log_ui;
 AppChart chart_ui;
@@ -55,21 +57,24 @@ void OnAddonLoaded(void* aSignature)
   
 	if ((int)aSignature == RTAPI_SIG)
 	{
+		tracker.resetAllPlayerStats();
 		RTAPIData = (RTAPI::RealTimeData*)Addon_API->DataLink_Get(DL_RTAPI);
 	}
 }
-
 
 void AddonLoad(AddonAPI_t* aApi)
 {
 	Addon_API = aApi;
 	ImGui::SetCurrentContext((ImGuiContext*)Addon_API->ImguiContext);
 	ImGui::SetAllocatorFunctions((void* (*)(size_t, void*))Addon_API->ImguiMalloc, (void(*)(void*, void*))Addon_API->ImguiFree); // on imgui 1.80+
-	RTAPIData = (RTAPI::RealTimeData*)Addon_API->DataLink_Get(DL_RTAPI);
 
-	Addon_API->Events_Subscribe("EV_ARCDPS_COMBATEVENT_LOCAL_RAW", mod_combat_local);
-	Addon_API->Events_Subscribe("EV_ARCDPS_COMBATEVENT_SQUAD_RAW", mod_combat_squad);
 	Addon_API->Events_Subscribe(EV_ADDON_LOADED, OnAddonLoaded);
+	Addon_API->Events_Subscribe(EV_ADDON_UNLOADED, OnAddonUnloaded);
+	Addon_API->Events_Subscribe("EV_ARCDPS_COMBATEVENT_SQUAD_RAW", mod_combat);
+	
+	Addon_API->Events_Subscribe(EV_RTAPI_GROUP_MEMBER_JOINED,        (EVENT_CONSUME)OnGroupMemberJoin);
+	Addon_API->Events_Subscribe(EV_RTAPI_GROUP_MEMBER_LEFT,          (EVENT_CONSUME)OnGroupMemberLeave);
+	Addon_API->Events_Subscribe(EV_RTAPI_GROUP_MEMBER_UPDATED,       (EVENT_CONSUME)OnGroupMemberUpdate);
 	
 	Keybinds::Register();
 	
@@ -80,8 +85,6 @@ void AddonLoad(AddonAPI_t* aApi)
 	SettingsPath = Addon_API->Paths_GetAddonDirectory("Mechanic-Log\\settings.json");
 	std::filesystem::create_directory(AddonPath);
 	Settings::Load(SettingsPath);
-	
-	Addon_API->Log(LOGL_INFO, channelName, "done mod_init");
 }
 
 extern "C" __declspec(dllexport) AddonDefinition_t* GetAddonDef()
@@ -108,6 +111,7 @@ void OnAddonUnloaded(void* aSignature)
 
 	if ((int)aSignature == RTAPI_SIG)
 	{
+		tracker.resetAllPlayerStats();
 		RTAPIData = nullptr;
 	}
 }
@@ -119,27 +123,23 @@ void AddonUnload()
 	
 	Keybinds::Cleanup();
 	
-	Addon_API->Events_Unsubscribe("EV_ARCDPS_COMBATEVENT_LOCAL_RAW", mod_combat_local);
-	Addon_API->Events_Unsubscribe("EV_ARCDPS_COMBATEVENT_SQUAD_RAW", mod_combat_squad);
+	Addon_API->Events_Unsubscribe(EV_ADDON_LOADED, OnAddonLoaded);
 	Addon_API->Events_Unsubscribe(EV_ADDON_UNLOADED, OnAddonUnloaded);
+	Addon_API->Events_Unsubscribe("EV_ARCDPS_COMBATEVENT_SQUAD_RAW", mod_combat);
+	
+	Addon_API->Events_Unsubscribe(EV_RTAPI_GROUP_MEMBER_JOINED,        (EVENT_CONSUME)OnGroupMemberJoin);
+	Addon_API->Events_Unsubscribe(EV_RTAPI_GROUP_MEMBER_LEFT,          (EVENT_CONSUME)OnGroupMemberLeave);
+	Addon_API->Events_Unsubscribe(EV_RTAPI_GROUP_MEMBER_UPDATED,       (EVENT_CONSUME)OnGroupMemberUpdate);
+
+	Settings::SaveMechanicSettings(SettingsPath);
 	if(Settings::export_chart_on_close) chart_ui.writeToDisk(&tracker);
 	tracker.resetAllPlayerStats();
 	Settings::Save(SettingsPath);
 }
 
-/* wrapper functions simply to log to different nexus channels */
-void mod_combat_local(void* aEventArgs)
-{
-	mod_combat(true, aEventArgs);
-}
-void mod_combat_squad(void* aEventArgs)
-{
-	mod_combat(true, aEventArgs);
-}
-
 /* combat callback -- may be called asynchronously, use id param to keep track of order, first event id will be 2. return ignored */
 /* at least one participant will be party/squad or minion of, or a buff applied by squad in the case of buff remove. not all statechanges present, see evtc statechange enum */
-void mod_combat(bool aIsLocal, void* aEventArgs)
+void mod_combat( void* aEventArgs)
 {
 	EvCombatData* cbtEv = (EvCombatData*)aEventArgs;
 	PlayerEntry* current_entry = nullptr;
@@ -147,9 +147,8 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 	/* ev is null. dst will only be valid on tracking add. skillname will also be null */
 	if (!cbtEv->ev)
 	{
-		if (!cbtEv->src->elite)
+		if (!cbtEv->src->elite && RTAPIData == nullptr)
 		{
-	
 			/* notify tracking change */
 			if (isPlayer(cbtEv->src) && !cbtEv->src->elite)
 			{
@@ -171,9 +170,7 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 	/* combat event. skillname may be null. non-null skillname will remain static until module is unloaded. refer to evtc notes for complete detail */
 	else
 	{
-
 		/* common */
-
 		/* statechange */
 		if (cbtEv->ev->is_statechange)
 		{
@@ -259,25 +256,41 @@ void mod_combat(bool aIsLocal, void* aEventArgs)
 
 		if(cbtEv->ev->result != CBTR_INTERRUPT && cbtEv->ev->result != CBTR_BLIND)
 		{
-			int64_t value = 0;
 			current_entry = tracker.getPlayerEntry(cbtEv->src);
 			PlayerEntry* other_entry = tracker.getPlayerEntry(cbtEv->dst);
-			for(uint16_t index=0;index<getMechanics().size();index++)
+			
+			for (auto& mechanic : getMechanics())
 			{
-				if(value = getMechanics()[index].isValidHit(cbtEv->ev, cbtEv->src, cbtEv->dst,
+				if (mechanic.isValidHit(cbtEv->ev, cbtEv->src, cbtEv->dst,
 					(current_entry ? current_entry->player : nullptr), //check for null before getting player object
 					(other_entry ? other_entry->player: nullptr)))
 				{
-					if (getMechanics()[index].is_combat_buff && cbtEv->ev->is_statechange == CBTS_BUFFAPPLY)
+					if (mechanic.is_combat_buff && cbtEv->ev->is_statechange == CBTS_BUFFAPPLY)
 					{
-						getMechanics()[index].is_combat_buff = false;
+						mechanic.is_combat_buff = false;
 					}
-					tracker.processMechanic(cbtEv->ev, current_entry, other_entry, &getMechanics()[index], value);
+					tracker.processMechanic(cbtEv->ev, current_entry, other_entry, &mechanic, true);
 					log_ui.scroll_to_bottom = true;
 				}
 			}
 		}
 	}
+}
+
+void OnGroupMemberLeave(RTAPI::GroupMember member)
+{
+	tracker.removePlayer(&member.AccountName[0]);
+}
+
+void OnGroupMemberJoin(RTAPI::GroupMember member)
+{
+	tracker.addPlayer(&member.AccountName[0], &member.CharacterName[0], member.IsSelf);
+}
+
+void OnGroupMemberUpdate(RTAPI::GroupMember member)
+{
+	//TODO: Change display name.
+	tracker.addPlayer(&member.AccountName[0], &member.CharacterName[0], member.IsSelf);
 }
 
 void AddonOptions()

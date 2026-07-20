@@ -1,18 +1,22 @@
 ﻿#include "Tracker.h"
 
+#include "imgui_panels.h"
 #include "Settings.h"
+#include "shared.h"
 
 PlayerEntry* Tracker::getPlayerEntry(const ag* new_player)
 {
 	if (!isPlayer(new_player)) return nullptr;
 
 	std::lock_guard<std::mutex> lg(players_mtx);
-
-	auto it = std::find(player_entries.begin(), player_entries.end(), new_player->id);
-
+	
+	auto it =  std::find(player_entries.begin(), player_entries.end(), new_player->id);
+	
 	//player not tracked yet
 	if (it == player_entries.end())
 	{
+		it = std::find(player_entries.begin(), player_entries.end(), new_player->name) ;
+		if (it != player_entries.end()) return &*it;
 		return nullptr;
 	}
 	else//player tracked
@@ -32,7 +36,7 @@ PlayerEntry * Tracker::getPlayerEntry(uintptr_t new_player)
 	//player not tracked yet
 	if (it == player_entries.end())
 	{
-		return nullptr;
+		return nullptr; 
 	}
 	else//player tracked
 	{
@@ -40,7 +44,7 @@ PlayerEntry * Tracker::getPlayerEntry(uintptr_t new_player)
 	}
 }
 
-PlayerEntry * Tracker::getPlayerEntry(std::string_view new_player)
+PlayerEntry * Tracker::getPlayerEntry(std::string new_player)
 {
 	if (new_player.empty()) return nullptr;
 
@@ -73,7 +77,7 @@ bool Tracker::addPlayer(ag* src, ag* dst)
 	if (!account) return false;
 	if (std::string(name).length() < 2) return false;
 	if (std::string(account).length() < 2) return false;
-
+	account = &account[1];
 	PlayerEntry* new_entry = getPlayerEntry(account);
 	
 	//player not tracked yet
@@ -82,9 +86,10 @@ bool Tracker::addPlayer(ag* src, ag* dst)
 
 	if (!new_entry)
 	{
-		players.push_back(Player(name, account, id, is_self));
+		players.push_back(Player(name, account, id, is_self, false));
 		players.back().current_log_npc = &current_log_npc;
 		player_entries.push_back(PlayerEntry(&players.back()));
+
 	}
 	else//player tracked
 	{
@@ -96,6 +101,33 @@ bool Tracker::addPlayer(ag* src, ag* dst)
 	return true;
 }
 
+bool Tracker::addPlayer(char* accountName, char* playerName, bool isSelf)
+{
+	PlayerEntry* new_entry = getPlayerEntry(accountName);
+	
+	if (!playerName) return false;
+	if (!accountName) return false;
+	if (std::string(playerName).length() < 2) return false;
+	if (std::string(accountName).length() < 2) return false;
+	
+	std::lock_guard<std::mutex> lg(players_mtx);
+
+	if (!new_entry)
+	{
+		players.push_back(Player(playerName, accountName, 0, isSelf, true));
+		players.back().current_log_npc = &current_log_npc;
+		player_entries.push_back(PlayerEntry(&players.back()));
+	}
+	else//player tracked
+	{
+		new_entry->player->id = 0;
+		new_entry->player->name = playerName;
+		new_entry->player->in_squad = true;
+		new_entry->player->is_self = isSelf;
+	}
+	return true;
+}
+
 bool Tracker::removePlayer(const ag* src)
 {
 	if (!src) return false;
@@ -103,8 +135,30 @@ bool Tracker::removePlayer(const ag* src)
 	const char* name = src->name;
 	const char* account = src->name;//TODO: if account names are ever added, put it here
 	const uintptr_t id = src->id;
+	account = &account[1];
+	PlayerEntry* new_entry = RTAPIData != nullptr ? getPlayerEntry(account) : getPlayerEntry(id);
 
-	PlayerEntry* new_entry = getPlayerEntry(id);
+	//player not tracked yet
+
+	std::lock_guard<std::mutex> lg(players_mtx);
+
+	if (!new_entry)
+	{
+		return false;
+	}
+	else
+	{
+		new_entry->player->in_squad = false;
+		return true;
+	}
+}
+
+bool Tracker::removePlayer(char* accountName)
+{
+	if (!accountName) return false;
+	
+
+	PlayerEntry* new_entry = getPlayerEntry(accountName);
 
 	//player not tracked yet
 
