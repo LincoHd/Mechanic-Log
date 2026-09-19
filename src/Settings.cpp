@@ -103,7 +103,7 @@ namespace Settings
     
     void SaveMechanicSettings(std::filesystem::path aPath)
     {
-        for (auto current_mechanic: getMechanics())
+        for (auto& current_mechanic: getMechanics())
         {
             std::string tmp = current_mechanic.getIniName();
             Settings[tmp] = current_mechanic.verbosity;
