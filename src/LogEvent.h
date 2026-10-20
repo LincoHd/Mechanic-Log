@@ -2,6 +2,7 @@
 
 #include "mechanics.h"
 #include "Player.h"
+#include "Settings.h"
 
 class LogEvent
 {

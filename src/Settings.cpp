@@ -1,6 +1,7 @@
 ﻿#include "Settings.h"
 #include "mechanics.h"
 #include "Shared.h"
+#include <fstream>
 
 const char* IS_MECHANI_CHART_VISIBLE = "IsMechanicChartVisible";
 const char* IS_MECHANI_LOG_VISIBLE = "IsMechanicLogVisible";
@@ -8,6 +9,7 @@ const char* EXPORT_DIR = "";
 const char* LOG_MAX_MECHANICS = "LogMaxMechanics";
 const char* EXPORT_ON_CLOSE = "ExportOnClose";
 const char* IS_SELF_STATS = "SelfStatistics";
+const char* MAX_NAME_DISPLAY_LENGTH = "MaxNameDisplayLength";
 
 namespace Settings
 {
@@ -16,6 +18,7 @@ namespace Settings
     bool show_app_chart = false;
     bool show_app_log = false;
     int max_log_events = 300;
+    int max_name_display_length = 300;
     bool show_only_self = false;
     bool export_chart_on_close = false;
     std::string export_dir;
@@ -53,7 +56,24 @@ namespace Settings
         {
             Settings[LOG_MAX_MECHANICS].get_to<int>(max_log_events);
         }
-        for (auto current_mechanic: getMechanics())
+        
+        if (!Settings[MAX_NAME_DISPLAY_LENGTH].is_null())
+        {
+            Settings[MAX_NAME_DISPLAY_LENGTH].get_to<int>(max_name_display_length);
+        }
+        
+        if (!Settings[EXPORT_ON_CLOSE].is_null())
+        {
+            Settings[EXPORT_ON_CLOSE].get_to<bool>(export_chart_on_close);
+        }
+        
+        if (!Settings[IS_SELF_STATS].is_null())
+        {
+            Settings[IS_SELF_STATS].get_to<bool>(show_only_self);
+        }
+        
+        //TODO LOAD RIGHT.
+        for (auto& current_mechanic: getMechanics())
         {
             std::string tmp = current_mechanic.getIniName();
             
@@ -83,7 +103,7 @@ namespace Settings
     
     void SaveMechanicSettings(std::filesystem::path aPath)
     {
-        for (auto current_mechanic: getMechanics())
+        for (auto& current_mechanic: getMechanics())
         {
             std::string tmp = current_mechanic.getIniName();
             Settings[tmp] = current_mechanic.verbosity;

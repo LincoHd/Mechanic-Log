@@ -62,8 +62,8 @@ void LogEvent::bakeStr()
     output += std::to_string(abs(time) % 60);
 
     output += " - ";
-
-    output += player ? player->name : "Unknown Player";
+    
+    output += player ? Settings::max_name_display_length != 0 ? player->name.substr(0, Settings::max_name_display_length) : player->name : "Unknown Player";
 
     output += " ";
     output += mechanic->name;

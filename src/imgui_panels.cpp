@@ -291,6 +291,12 @@ void AppOptions::draw(Tracker* tracker)
 			Settings::Settings[EXPORT_ON_CLOSE] = Settings::export_chart_on_close;
 			Settings::Save(SettingsPath);
 		}
+	
+		if (ImGui::InputInt("Max display Length Name", &Settings::max_name_display_length, 1))
+		{
+			Settings::Settings[MAX_NAME_DISPLAY_LENGTH] = Settings::max_name_display_length;
+			Settings::Save(SettingsPath);
+		}
 
 		ImGui::Separator();
 

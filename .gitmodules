@@ -7,3 +7,6 @@
 [submodule "src/nexus"]
 	path = src/nexus
 	url = https://github.com/RaidcoreGG/RCGG-lib-nexus-api.git
+[submodule "src/mumble"]
+	path = src/mumble
+	url = https://github.com/RaidcoreGG/RCGG-lib-mumble-api/tree/72c222df934d5f8a6e729bdca18e911fec8a01c4

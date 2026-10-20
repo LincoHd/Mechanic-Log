@@ -6,3 +6,4 @@ std::filesystem::path AddonPath;
 const char* channelName = "Mechanic Log";
 NexusLinkData_t* NexusLink = nullptr;
 RTAPI::RealTimeData* RTAPIData = nullptr;
+extern Mumble::Data* MumbleLink = nullptr;

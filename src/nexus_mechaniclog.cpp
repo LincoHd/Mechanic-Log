@@ -78,6 +78,9 @@ void AddonLoad(AddonAPI_t* aApi)
 	
 	Keybinds::Register();
 	
+	NexusLink = (NexusLinkData_t*)Addon_API->DataLink_Get(DL_NEXUS_LINK);
+	MumbleLink = (Mumble::Data*)Addon_API->DataLink_Get(DL_MUMBLE_LINK);
+	
 	Addon_API->GUI_Register(RT_OptionsRender, AddonOptions);
 	Addon_API->GUI_Register(RT_Render, AddonRender);
 	
@@ -254,7 +257,7 @@ void mod_combat( void* aEventArgs)
 
 		}
 
-		if(cbtEv->ev->result != CBTR_INTERRUPT && cbtEv->ev->result != CBTR_BLIND)
+		if(cbtEv->ev->result != CBTR_INTERRUPT && cbtEv->ev->result != CBTR_BLIND && cbtEv->ev->result != CBTR_KILLINGBLOW && cbtEv->ev->result != CBTR_DOWNED)
 		{
 			current_entry = tracker.getPlayerEntry(cbtEv->src);
 			PlayerEntry* other_entry = tracker.getPlayerEntry(cbtEv->dst);
@@ -313,6 +316,7 @@ void ShowMechanicsLog(bool* p_open)
 
 void AddonRender()
 {
+	if (!NexusLink || !MumbleLink || MumbleLink->Context.IsMapOpen || !NexusLink->IsGameplay) { return; }
 	if (Settings::show_app_chart)
 	{
 		chartOpen = true;

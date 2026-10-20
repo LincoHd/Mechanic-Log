@@ -107,6 +107,7 @@ extern Boss boss_dagda;
 
 //VoE Raid Encounter
 extern Boss boss_kela_seneschal_of_waves;
+extern Boss boss_vloxx;
 
 extern std::list<Boss*> bosses;
 
