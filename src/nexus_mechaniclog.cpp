@@ -257,7 +257,7 @@ void mod_combat( void* aEventArgs)
 
 		}
 
-		if(cbtEv->ev->result != CBTR_INTERRUPT && cbtEv->ev->result != CBTR_BLIND)
+		if(cbtEv->ev->result != CBTR_INTERRUPT && cbtEv->ev->result != CBTR_BLIND && cbtEv->ev->result != CBTR_KILLINGBLOW && cbtEv->ev->result != CBTR_DOWNED)
 		{
 			current_entry = tracker.getPlayerEntry(cbtEv->src);
 			PlayerEntry* other_entry = tracker.getPlayerEntry(cbtEv->dst);
